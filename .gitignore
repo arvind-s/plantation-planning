@@ -1,1 +1,5 @@
+__pycache__/
+.pytest_cache/
+data/raw_cache/
+.ipynb_checkpoints/
 .superpowers/
