@@ -6,13 +6,21 @@ from scipy import sparse
 from shapely import box
 
 
-def _nearest_valid(geom, lats, lons, valid_mask):
+def _nearest_valid(geom, lats, lons, valid_mask, res):
+    if valid_mask is not None and not np.any(valid_mask):
+        raise ValueError("no valid cells in grid")
     p = geom.representative_point()
     rr, cc = np.meshgrid(np.arange(len(lats)), np.arange(len(lons)), indexing="ij")
     d2 = (lats[rr] - p.y) ** 2 + (lons[cc] - p.x) ** 2
     if valid_mask is not None:
         d2 = np.where(valid_mask, d2, np.inf)
     r, c = np.unravel_index(np.argmin(d2), d2.shape)
+    dist = float(np.sqrt(d2[r, c]))
+    if dist > 3 * res:
+        raise ValueError(
+            f"nearest valid cell is {dist:.3f} degrees from district representative "
+            f"point, exceeding 3*res = {3 * res:.3f}"
+        )
     return int(r), int(c)
 
 
@@ -37,7 +45,7 @@ def build_weights(geoms, lats, lons, res, valid_mask=None):
                 if a > 0:
                     found.append((int(r), int(c), a))
         if not found:
-            r, c = _nearest_valid(geom, lats, lons, valid_mask)
+            r, c = _nearest_valid(geom, lats, lons, valid_mask, res)
             found = [(r, c, 1.0)]
         total = sum(a for _, _, a in found)
         for r, c, a in found:

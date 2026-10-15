@@ -45,3 +45,30 @@ def test_all_overlapping_cells_invalid_falls_back_to_nearest_valid():
 def test_matrix_shape():
     W, _ = weights.build_weights([box(0, 0, 1, 1), box(2, 2, 3, 3)], LATS, LONS, RES)
     assert W.shape == (2, 9)
+
+
+def test_all_false_mask_raises():
+    valid = np.zeros((3, 3), bool)
+    try:
+        weights.build_weights([box(0.1, 0.1, 0.9, 0.9)], LATS, LONS, RES, valid)
+    except ValueError as e:
+        assert "no valid cells" in str(e)
+    else:
+        raise AssertionError("expected ValueError")
+
+
+def test_district_far_outside_grid_raises():
+    try:
+        weights.build_weights([box(50, 50, 51, 51)], LATS, LONS, RES)
+    except ValueError as e:
+        assert "degrees" in str(e)
+    else:
+        raise AssertionError("expected ValueError")
+
+
+def test_ascending_lats_same_weights():
+    lats_asc = LATS[::-1].copy()           # [0.5, 1.5, 2.5]
+    W, n = weights.build_weights([box(0, 0, 1.5, 1)], lats_asc, LONS, RES)
+    d = _dense(W)[0]
+    assert np.isclose(d[0, 0], 2 / 3) and np.isclose(d[0, 1], 1 / 3)
+    assert np.isclose(W.sum(), 1.0) and n[0] == 2
