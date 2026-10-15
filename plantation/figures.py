@@ -41,11 +41,13 @@ def display_table(view: pd.DataFrame) -> pd.DataFrame:
         if r["low_cells"]:
             n.append("few grid cells")
         if r["missing_days"] > 0:
-            n.append("data gaps")
+            k = int(r["missing_days"])
+            n.append(f"{k} missing day{'s' if k > 1 else ''}")
         return ", ".join(n)
     return pd.DataFrame({
         "State": view["state"], "District": view["district"],
         "10-yr mean (mm)": view["mean_mm"],
         "Shortlisted": view["above"].map({True: "Yes", False: "No"}),
         "Grid cells": view["n_cells"],
+        "Missing days": view["missing_days"].astype(int),
         "Notes": view.apply(notes, axis=1)}).reset_index(drop=True)

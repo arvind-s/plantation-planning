@@ -35,7 +35,12 @@ with st.sidebar:
                                 value=800, step=50, key="threshold",
                                 help="Districts with a 10-year mean at or above this are shortlisted.")
     src = SOURCES[src_label]
-    df = load(src, (DATA / f"district_season_{src}.parquet").stat().st_mtime)
+    try:
+        df = load(src, (DATA / f"district_season_{src}.parquet").stat().st_mtime)
+        geojson = load_geojson((DATA / "districts.geojson").stat().st_mtime)
+    except FileNotFoundError:
+        st.error("Data files missing; run build_dataset.py")
+        st.stop()
     states = st.multiselect("State", sorted(df["state"].unique()), key="states")
     query = st.text_input("Search district", key="query")
 
@@ -53,13 +58,15 @@ c3.metric("Lowest 10-yr mean", f"{low['mean_mm']:.0f} mm", low["district"], delt
 
 tab_map, tab_table = st.tabs(["Map", "Ranked table"])
 with tab_map:
-    st.plotly_chart(figures.choropleth(load_geojson((DATA / "districts.geojson").stat().st_mtime), view, float(threshold)), width="stretch")
+    st.plotly_chart(figures.choropleth(geojson, view, float(threshold)), width="stretch")
 with tab_table:
     table = figures.display_table(view)
     st.dataframe(table, width="stretch", hide_index=True)
     st.download_button("Download CSV", table.to_csv(index=False).encode(),
                        file_name="plantation_planning_shortlist.csv", mime="text/csv")
+    if src == "gsmap":
+        st.caption("GSMaP: JAXA has no file for 2025-10-10; that day is excluded from the totals.")
 
 years = sorted(c for c in df.columns if c.startswith("y") and c[1:].isdigit())
-st.caption(f"Mean of annual totals, {years[0][1:]}-{years[-1][1:]}, from {src_label}. "
+st.caption(f"Mean of annual totals ({per_label}), {years[0][1:]}-{years[-1][1:]}, from {src_label}. "
            "Each district value is an area-weighted mean over the grid cells inside it.")

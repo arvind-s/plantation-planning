@@ -79,7 +79,11 @@ def test_choropleth_has_two_traces():
     assert len(fig.data) == 2
     t = figures.display_table(view)
     assert list(t["Shortlisted"]) == ["Yes", "No"]
-    assert "few grid cells" in t.loc[1, "Notes"] and "data gaps" in t.loc[1, "Notes"]
+    assert t.loc[1, "Notes"] == "few grid cells, 2 missing days"
+    assert t.loc[0, "Notes"] == ""
+    assert list(t["Missing days"]) == [0, 2]
+    one = view.assign(missing_days=[0, 1])
+    assert figures.display_table(one).loc[1, "Notes"].endswith("1 missing day")
 
 
 def test_shortlisted_color_range_brackets_threshold():
@@ -93,3 +97,19 @@ def test_shortlisted_color_range_brackets_threshold():
         tr = [t for t in fig.data if t.showscale is not False][0]
         assert tr.zmin < 800 < tr.zmax
         assert tr.zmin != tr.zmax
+
+
+def test_missing_data_dir_shows_error_not_traceback(tmp_path, monkeypatch):
+    monkeypatch.setenv("PLANTATION_DATA_DIR", str(tmp_path))
+    at = AppTest.from_file("app.py", default_timeout=60)
+    at.run()
+    assert not at.exception
+    assert any("Data files missing" in e.value for e in at.error)
+
+
+def test_caption_has_period_and_gsmap_footnote(app):
+    cap = " ".join(c.value for c in app.caption)
+    assert "Jun-Dec" in cap and "2025-10-10" in cap
+    app.sidebar.radio(key="source").set_value("IMD (gauge, 0.25°)").run()
+    cap = " ".join(c.value for c in app.caption)
+    assert "2025-10-10" not in cap

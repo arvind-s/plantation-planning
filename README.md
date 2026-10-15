@@ -54,16 +54,22 @@ The district shapefile itself is not committed; the simplified `districts.geojso
 
 ## Caveats
 
-- GSMaP filenames carry a version tag that differs between early years (reanalysis, `v6.4133`) and recent
-  ones (`v6.6133`). A small step change across years is possible and is not corrected.
+- GSMaP filenames carry a version tag; the filename version tag varies by year (resolved at download).
+  A small step change across years is possible and is not corrected.
+- GSMaP has a known source gap: JAXA has no file for 2025-10-10. That day is excluded from the totals and
+  counted in `missing_days` (shown as "1 missing day" in the Notes column for every GSMaP row).
 - IMD at 0.25° is coarse for small districts. The table's **Notes** column flags districts with fewer than
-  2 grid cells ("few grid cells") and districts with any missing days ("data gaps").
+  2 grid cells ("few grid cells") and districts with any missing days ("N missing days").
 - GSMaP and IMD will disagree for some districts, which can move a district across the threshold.
   Switch the source to see both; the app does not pick a winner.
+- Attribution: GSMaP provided by EORC, JAXA. IMD Pune gridded rainfall, Pai et al. 2014.
 - This is a screening tool. There is no suitability score.
 
 ## Tests
 
+Tests import geopandas, so install the build requirements first:
+
 ```bash
+pip install -r requirements.txt -r requirements-build.txt
 python -m pytest
 ```

@@ -53,3 +53,22 @@ def test_write_geojson_keeps_key(tmp_path):
 def test_bbox_pads():
     g = _gdf([("A", "KA", box(0, 0, 1, 1))])
     assert districts.bbox(g, pad=0.5) == (-0.5, -0.5, 1.5, 1.5)
+
+
+def test_make_valid_collection_reduced_to_polygons(tmp_path):
+    bow = Polygon([(0, 0), (1, 1), (1, 0), (0, 1), (0, 0), (-1, 0.5), (0, 0)])  # bow-tie + spike
+    p = tmp_path / "d.shp"
+    _gdf([("Bow", "KA", bow), ("Sq", "KA", box(5, 5, 6, 6))]).to_file(p)
+    g = districts.load_districts(str(p))
+    assert set(g.geometry.geom_type) <= {"Polygon", "MultiPolygon"}
+    out = tmp_path / "d.geojson"
+    districts.write_geojson(g, str(out))
+    assert set(gpd.read_file(out).geometry.geom_type) <= {"Polygon", "MultiPolygon"}
+
+
+def test_write_geojson_rejects_non_polygon(tmp_path):
+    from shapely.geometry import LineString
+    g = gpd.GeoDataFrame({"key": ["K|A"], "state": ["K"], "district": ["A"]},
+                         geometry=[LineString([(0, 0), (1, 1)])], crs=4326)
+    with pytest.raises(ValueError, match="Polygon"):
+        districts.write_geojson(g, str(tmp_path / "x.geojson"))

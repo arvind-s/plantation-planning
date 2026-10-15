@@ -29,7 +29,11 @@ def build_source(loader, gdf, years, res):
     totals = []
     for year in years:
         stack, times, lats, lons, missing = loader(year)
+        if W is not None and not (np.shape(lats) == np.shape(first[0]) and np.shape(lons) == np.shape(first[1])
+                                  and np.allclose(lats, first[0]) and np.allclose(lons, first[1])):
+            raise ValueError(f"grid for {year} differs from {years[0]}; weights cannot be reused")
         if W is None:
+            first = (lats, lons)
             valid = np.isfinite(stack).any(axis=0)
             W, n_cells = weights.build_weights(geoms, lats, lons, res, valid_mask=valid)
         if times is not None:
@@ -67,6 +71,37 @@ def _sha256(path):
     return h.hexdigest()
 
 
+PRODUCTS = {"gsmap": "GSMaP_Gauge v6 daily_G 00Z-23Z",
+            "imd": "IMD Pune 0.25 deg gridded rainfall"}
+SHP_EXTS = (".shp", ".dbf", ".shx", ".prj", ".cpg")
+
+
+def write_manifest(out_dir, shp, years, n_districts, source, rows, res, parquet_path):
+    """Update manifest.json: keep other sources' entries, refresh this one. Deterministic."""
+    mpath = os.path.join(out_dir, "manifest.json")
+    manifest = {}
+    if os.path.exists(mpath):
+        with open(mpath) as f:
+            manifest = json.load(f)
+    base = os.path.splitext(shp)[0]
+    manifest["input_shp_sha256"] = {os.path.basename(base + e): _sha256(base + e)
+                                    for e in SHP_EXTS if os.path.exists(base + e)}
+    manifest["years"] = list(years)
+    manifest["n_districts"] = int(n_districts)
+    entry = {"rows": int(rows), "res_deg": res, "sha256": _sha256(parquet_path),
+             "product": PRODUCTS[source]}
+    if source == "imd":
+        entry["imdlib_version"] = _imdlib_version()
+    manifest.setdefault("sources", {})[source] = entry
+    with open(mpath, "w") as f:
+        json.dump(manifest, f, indent=2, sort_keys=True)
+
+
+def _imdlib_version():
+    import importlib.metadata
+    return importlib.metadata.version("imdlib")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--shp", default="../input/5_states_all_districts.shp")
@@ -80,18 +115,13 @@ def main():
     gdf = districts.load_districts(a.shp)
     districts.write_geojson(gdf, os.path.join(a.out, "districts.geojson"))
     bbox = districts.bbox(gdf)
-    manifest = {"input_shp_sha256": _sha256(a.shp), "years": list(a.years),
-                "n_districts": int(len(gdf)), "sources": {}}
     for source in (["gsmap", "imd"] if a.source == "both" else [a.source]):
         print(f"[{source}]", flush=True)
         loader, res = _loader_for(source, bbox, a.cache)
         df = build_source(loader, gdf, a.years, res)
         path = os.path.join(a.out, f"district_season_{source}.parquet")
         df.to_parquet(path, index=False, engine="pyarrow")
-        manifest["sources"][source] = {"rows": int(len(df)), "res_deg": res,
-                                       "sha256": _sha256(path)}
-    with open(os.path.join(a.out, "manifest.json"), "w") as f:
-        json.dump(manifest, f, indent=2, sort_keys=True)
+        write_manifest(a.out, a.shp, a.years, len(gdf), source, len(df), res, path)
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@
 
 **Goal:** Build a Streamlit app, "plantation_planning" (subtitle "Decadal precip assessment (JJASOND)"), showing each of 156 districts' 10-year mean cumulative rainfall (mm) from GSMaP or IMD, with an editable threshold (default 800 mm) and a Jun-Dec (default) / Jan-Dec period filter.
 
-**Architecture:** An offline build script turns daily gridded rainfall (2016-2025, full year) into per-district annual totals using area-weighted cell means, and writes small committed parquet files. The Streamlit app only reads those files (no network calls). GSMaP and IMD readers are copied from `~/Documents/Agroforestry/rainfall_app/rainfall/` so the repo deploys on its own.
+**Architecture:** An offline build script turns daily gridded rainfall (2016-2025, full year) into per-district annual totals using area-weighted cell means, and writes small committed parquet files. The Streamlit app only reads those files (no network calls). GSMaP and IMD readers are copied from the existing rainfall_app project's `rainfall/` package so the repo deploys on its own.
 
 **Tech Stack:** Python, geopandas/shapely, numpy/scipy.sparse, pandas/pyarrow, imdlib (build only), Streamlit, Plotly, pytest.
 
@@ -20,7 +20,7 @@
 - GSMaP: daily mm = value (mm/hr) x 24; filename version tag resolved by listing the month directory. IMD: mm/day directly, nodata -999.
 - Output must be deterministic: same input gives the same bytes; sorted rows, fixed column order, no timestamps. Reruns skip cached days.
 - The app makes no network calls and has no suitability score.
-- Own git repo at `plantation_planning/`; GitHub target `arvind-s/plantation-planning`. Do not push without asking the user. Never push the `/Users/mipl` home repo.
+- Own git repo at `plantation_planning/`; GitHub target `arvind-s/plantation-planning`. Do not push without asking the user. Never push any parent or home-directory repo.
 - Commit messages end with `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
 - Run Python as `python` (base anaconda; geopandas, scipy, imdlib, streamlit, plotly, pyarrow are installed). Run Python that reads downloaded data with `-I`.
 
@@ -605,8 +605,8 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 
 Run:
 ```bash
-cp ~/Documents/Agroforestry/rainfall_app/rainfall/gsmap.py plantation/gsmap.py
-cp ~/Documents/Agroforestry/rainfall_app/rainfall/imd.py plantation/imd.py
+cp <rainfall_app>/rainfall/gsmap.py plantation/gsmap.py
+cp <rainfall_app>/rainfall/imd.py plantation/imd.py
 ```
 
 - [ ] **Step 2: Write the failing tests**

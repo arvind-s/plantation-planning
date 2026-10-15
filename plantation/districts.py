@@ -2,7 +2,17 @@
 from __future__ import annotations
 
 import geopandas as gpd
+import shapely
 from shapely import make_valid
+from shapely.ops import unary_union
+
+
+def _polygons_only(geom):
+    """make_valid can return Polygon+LineString collections; keep the areal parts."""
+    if geom is None or geom.geom_type in ("Polygon", "MultiPolygon"):
+        return geom
+    parts = [p for p in shapely.get_parts(geom) if p.geom_type in ("Polygon", "MultiPolygon")]
+    return unary_union(parts) if parts else shapely.Polygon()
 
 
 def load_districts(shp_path: str) -> gpd.GeoDataFrame:
@@ -17,7 +27,7 @@ def load_districts(shp_path: str) -> gpd.GeoDataFrame:
     g["state"] = g["State"].astype(str).str.strip()
     if g.duplicated(["state", "district"]).any():
         raise ValueError("(state, district) is not unique in the shapefile")
-    g["geometry"] = g.geometry.apply(lambda geom: make_valid(geom) if geom is not None else geom)
+    g["geometry"] = g.geometry.apply(lambda geom: _polygons_only(make_valid(geom)) if geom is not None else geom)
     if g.geometry.isna().any() or g.geometry.is_empty.any():
         raise ValueError("district(s) with empty geometry")
     g = g.sort_values(["state", "district"], kind="stable").reset_index(drop=True)
@@ -29,6 +39,9 @@ def load_districts(shp_path: str) -> gpd.GeoDataFrame:
 def write_geojson(gdf: gpd.GeoDataFrame, path: str, tolerance: float = 0.005) -> None:
     out = gdf[["key", "state", "district", "geometry"]].copy()
     out["geometry"] = out.geometry.simplify(tolerance, preserve_topology=True)
+    bad = sorted(set(out.geometry.geom_type) - {"Polygon", "MultiPolygon"})
+    if bad:
+        raise ValueError(f"geojson needs Polygon/MultiPolygon only, got {bad}")
     out.to_file(path, driver="GeoJSON")
 
 
