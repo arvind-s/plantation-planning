@@ -1,13 +1,22 @@
 {
-  "input_shp_sha256": "c14549d96a379132382dd0a8bf74d96a5ca82bb53af3f47f0a5e5f66c01c714c",
+  "input_shp_sha256": {
+    "5_states_all_districts.cpg": "3ad3031f5503a4404af825262ee8232cc04d4ea6683d42c5dd0a2f2a27ac9824",
+    "5_states_all_districts.dbf": "7bbe8d805ac3d2863d58fdd8a796e769130ec78abb460984f415bf65334d24d2",
+    "5_states_all_districts.prj": "b957d3ec37ddd3604bc55181bb616bfdf3c68391ba778df0c872e00ab107b99d",
+    "5_states_all_districts.shp": "c14549d96a379132382dd0a8bf74d96a5ca82bb53af3f47f0a5e5f66c01c714c",
+    "5_states_all_districts.shx": "7f4be15080fdd92e875ea42d41844f211f9e02fa98e4b330ab86ec973bd72a64"
+  },
   "n_districts": 156,
   "sources": {
     "gsmap": {
+      "product": "GSMaP_Gauge v6 daily_G 00Z-23Z",
       "res_deg": 0.1,
       "rows": 312,
       "sha256": "d172d144f7f59419c10cf0d06df9c0b51dca9e01deaacc79fbfb6fe00c542c55"
     },
     "imd": {
+      "imdlib_version": "0.1.21",
+      "product": "IMD Pune 0.25 deg gridded rainfall",
       "res_deg": 0.25,
       "rows": 312,
       "sha256": "9fa448b7556efaf01c44e0629c677bd074f7b8c1b86f634e339f909e108c59f1"
