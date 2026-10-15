@@ -9,7 +9,7 @@ from plantation import figures, intro, metrics
 
 DATA = Path(os.environ.get("PLANTATION_DATA_DIR", Path(__file__).parent / "data" / "out"))
 PERIOD_KEYS = {"Jun-Dec": "JJASOND", "Jan-Dec": "JANDEC"}
-SOURCES = {"GSMaP (JAXA, 0.1°)": "gsmap", "IMD (gauge, 0.25°)": "imd"}
+SOURCES = {"IMD (gauge, 0.25°)": "imd", "GSMaP (JAXA, 0.1°)": "gsmap"}
 
 st.set_page_config(page_title="plantation_planning", layout="wide")
 st.image(intro.banner_svg(), width="stretch")

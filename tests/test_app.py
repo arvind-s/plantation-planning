@@ -114,9 +114,16 @@ def test_missing_data_dir_shows_error_not_traceback(tmp_path, monkeypatch):
     assert any("Data files missing" in e.value for e in at.error)
 
 
+def test_default_source_is_imd_with_gsmap_second(app):
+    radio = app.sidebar.radio(key="source")
+    assert radio.value == "IMD (gauge, 0.25°)"
+    assert radio.options == ["IMD (gauge, 0.25°)", "GSMaP (JAXA, 0.1°)"]
+
+
 def test_caption_has_period_and_gsmap_footnote(app):
     cap = " ".join(c.value for c in app.caption)
-    assert "Jun-Dec" in cap and "2025-10-10" in cap
-    app.sidebar.radio(key="source").set_value("IMD (gauge, 0.25°)").run()
+    assert "Jun-Dec" in cap and "IMD" in cap
+    assert "2025-10-10" not in cap                       # IMD default: no GSMaP gap note
+    app.sidebar.radio(key="source").set_value("GSMaP (JAXA, 0.1°)").run()
     cap = " ".join(c.value for c in app.caption)
-    assert "2025-10-10" not in cap
+    assert "2025-10-10" in cap

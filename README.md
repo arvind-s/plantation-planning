@@ -17,7 +17,7 @@ The app reads only the committed files in `data/out/` and makes no network calls
 
 Sidebar controls:
 
-- **Rainfall source** — GSMaP (JAXA satellite, 0.1°) or IMD (gauge-based grid, 0.25°).
+- **Rainfall source** — IMD (gauge-based grid, 0.25°, the default) or GSMaP (JAXA satellite, 0.1°).
 - **Period** — Jun–Dec (default, JJASOND) or Jan–Dec (full year).
 - **Threshold (mm)** — districts with a 10-year mean at or above it are shortlisted (equal counts).
 - State filter and district search.

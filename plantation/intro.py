@@ -28,8 +28,8 @@ state or search for a district by name.
 
 For every day of every year, rainfall is averaged over the grid cells inside the district (weighted by how much
 of each cell lies in the district), added up for the window, and then averaged over the ten years. Two
-independent sources are available: **GSMaP** (JAXA satellite estimates, 0.1° grid) and **IMD** (India
-Meteorological Department gauge-based grid, 0.25°).
+independent sources are available: **IMD** (India Meteorological Department gauge-based grid, 0.25°, the
+default) and **GSMaP** (JAXA satellite estimates, 0.1° grid).
 
 **Reading the results**
 
