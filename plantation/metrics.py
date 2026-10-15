@@ -70,10 +70,14 @@ def build_table(totals: pd.DataFrame, meta: pd.DataFrame, years: list[int]) -> p
 
 
 def shortlist(df: pd.DataFrame, period: str, threshold: float,
-              states: list[str] | None = None, query: str = "") -> pd.DataFrame:
+              states: list[str] | None = None, query: str = "",
+              keys: list[str] | None = None) -> pd.DataFrame:
+    """``keys`` are "state|district" strings (a district name alone is ambiguous across states)."""
     d = df[df["period"] == period]
     if states:
         d = d[d["state"].isin(states)]
+    if keys:
+        d = d[(d["state"] + "|" + d["district"]).isin(keys)]
     if query:
         d = d[d["district"].str.contains(query, case=False, regex=False)]
     d = d.assign(above=d["mean_mm"] >= threshold)

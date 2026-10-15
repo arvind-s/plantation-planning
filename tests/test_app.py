@@ -127,3 +127,53 @@ def test_caption_has_period_and_gsmap_footnote(app):
     app.sidebar.radio(key="source").set_value("GSMaP (JAXA, 0.1°)").run()
     cap = " ".join(c.value for c in app.caption)
     assert "2025-10-10" in cap
+
+
+def _extended(tmp_path):
+    """KA has A and C, TN has B (the base fixture has one district per state)."""
+    rows = []
+    for st, di, m in (("KA", "A", 900.0), ("KA", "C", 1200.0), ("TN", "B", 700.0)):
+        for per in ("JJASOND", "JANDEC"):
+            rows.append({"state": st, "district": di, "period": per, "y2025": m, "mean_mm": m,
+                         "n_years": 1, "n_cells": 3, "missing_days": 0, "low_cells": False})
+    for s_ in ("gsmap", "imd"):
+        pd.DataFrame(rows).to_parquet(tmp_path / f"district_season_{s_}.parquet", index=False)
+
+
+@pytest.fixture
+def app3(tmp_path, monkeypatch):
+    _write_fixture(tmp_path)
+    _extended(tmp_path)
+    monkeypatch.setenv("PLANTATION_DATA_DIR", str(tmp_path))
+    at = AppTest.from_file("app.py", default_timeout=60)
+    at.run()
+    return at
+
+
+def _labels(widget):
+    return list(widget.options)
+
+
+def test_district_dropdown_lists_all_then_narrows_by_state(app3):
+    assert not app3.exception
+    assert len(_labels(app3.sidebar.multiselect(key="districts"))) == 3
+    app3.sidebar.multiselect(key="states").set_value(["KA"]).run()
+    assert not app3.exception
+    assert _labels(app3.sidebar.multiselect(key="districts")) == ["A", "C"]
+
+
+def test_choosing_district_filters_view(app3):
+    app3.sidebar.multiselect(key="states").set_value(["KA"]).run()
+    app3.sidebar.multiselect(key="districts").set_value(["KA|C"]).run()
+    assert not app3.exception
+    shortlisted = [m for m in app3.metric if m.label == "Shortlisted"][0]
+    assert shortlisted.value == "1 of 1"
+
+
+def test_changing_state_drops_stale_district_selection(app3):
+    app3.sidebar.multiselect(key="districts").set_value(["TN|B"]).run()
+    app3.sidebar.multiselect(key="states").set_value(["KA"]).run()      # TN|B is no longer a valid option
+    assert not app3.exception
+    assert app3.sidebar.multiselect(key="districts").value == []
+    shortlisted = [m for m in app3.metric if m.label == "Shortlisted"][0]
+    assert shortlisted.value == "2 of 2"                                # both KA districts shown

@@ -46,9 +46,18 @@ with st.sidebar:
         st.error("Data files missing; run build_dataset.py")
         st.stop()
     states = st.multiselect("State", sorted(df["state"].unique()), key="states")
+    in_states = df[df["state"].isin(states)] if states else df
+    names = in_states[["key", "state", "district"]].drop_duplicates().sort_values(["state", "district"])
+    options = list(names["key"])
+    # a district picked earlier may no longer belong to the chosen states: drop it before the widget is built
+    kept = [k for k in st.session_state.get("districts", []) if k in options]
+    if kept != st.session_state.get("districts", []):
+        st.session_state["districts"] = kept
+    labels = {r.key: (r.district if states else f"{r.district} ({r.state})") for r in names.itertuples()}
+    picked = st.multiselect("District", options, key="districts", format_func=labels.get)
     query = st.text_input("Search district", key="query")
 
-view = metrics.shortlist(df, PERIOD_KEYS[per_label], float(threshold), states or None, query)
+view = metrics.shortlist(df, PERIOD_KEYS[per_label], float(threshold), states or None, query, picked or None)
 if view.empty:
     st.info("No districts match the current filters.")
     st.stop()

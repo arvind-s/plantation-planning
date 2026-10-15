@@ -20,7 +20,7 @@ Sidebar controls:
 - **Rainfall source** — IMD (gauge-based grid, 0.25°, the default) or GSMaP (JAXA satellite, 0.1°).
 - **Period** — Jun–Dec (default, JJASOND) or Jan–Dec (full year).
 - **Threshold (mm)** — districts with a 10-year mean at or above it are shortlisted (equal counts).
-- State filter and district search.
+- **State** and **District** dropdowns (multi-select; the district list follows the chosen states) and a name search.
 
 Outputs: KPI strip, choropleth map (shortlisted districts in blue, the rest grey), ranked table with CSV download.
 

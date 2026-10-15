@@ -90,3 +90,11 @@ def test_shortlist_filters_and_can_be_empty():
     df = _table()
     assert metrics.shortlist(df, "JJASOND", 800, states=["TN"]).empty
     assert len(metrics.shortlist(df, "JJASOND", 800, query="a")) == 1
+
+
+def test_shortlist_keys_filter_uses_state_and_district():
+    df = _table()                                        # KA|A and KA|B
+    s = metrics.shortlist(df, "JJASOND", 800, keys=["KA|B"])
+    assert list(s.district) == ["B"]
+    assert metrics.shortlist(df, "JJASOND", 800, keys=["TN|B"]).empty    # same name, other state: not matched
+    assert len(metrics.shortlist(df, "JJASOND", 800, keys=[])) == 2      # empty selection = no restriction
