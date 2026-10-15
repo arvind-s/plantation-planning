@@ -17,8 +17,10 @@ looking at finer-scale data (see the Rainfall Window Explorer for block level).
   the build cache because the mean is derived from them; the UI shows the mean.
 - Threshold is a sidebar number input, default 800 mm, editable. A district is
   shortlisted when its 10-year mean >= threshold.
-- Period selector: **Jun-Dec** (default, JJASOND) or **Jan-Dec**, so staff can
-  read the threshold as a season total or a true annual total.
+- The build covers the **full year** (Jan 1-Dec 31) for every year. The app has
+  a period filter with two values: **Jun-Dec** (default, JJASOND) and
+  **Jan-Dec** (full year). Both come from the same daily data, so switching is
+  instant and needs no extra build.
 - Two rainfall sources with a toggle: JAXA GSMaP (0.1 deg) and IMD gridded
   rain (0.25 deg), same as the Rainfall Window Explorer.
 - Years: 2016-2025 (the last 10 complete years; 2026 is still in progress).
@@ -69,10 +71,10 @@ The GSMaP and IMD code is copied, not imported, so the repo deploys on its own.
 3. Per district, per day, the mean over grid cells weighted by the area of
    overlap between each cell and the district. Weights are computed once per
    source grid. Missing days are skipped, not zero-filled, and counted.
-4. `metrics.py` sums days in the window (Jun 1-Dec 31, or Jan 1-Dec 31) per
+4. `metrics.py` sums days in each window (Jan 1-Dec 31 and Jun 1-Dec 31) per
    year, then averages the 10 years.
 5. Output `district_season_{gsmap,imd}.parquet`, one row per district x
-   period, columns: `district`, `state`, `period`, per-year `y2016..y2025`,
+   period, columns: `district`, `state`, `period` (`JJASOND` or `JANDEC`), per-year `y2016..y2025`,
    `mean_mm`, `n_cells`, `missing_days`.
 
 ## Edge cases
@@ -92,7 +94,7 @@ The GSMaP and IMD code is copied, not imported, so the repo deploys on its own.
 ## App
 
 - Header "plantation_planning", subtitle "Decadal precip assessment (JJASOND)".
-- Sidebar: source toggle (GSMaP / IMD), period (Jun-Dec / Jan-Dec), threshold
+- Sidebar: source toggle (GSMaP / IMD), period filter (Jun-Dec default / Jan-Dec), threshold
   (mm, default 800, editable), state multiselect, district search.
 - KPI strip: districts shortlisted (count and % of districts in view), highest
   and lowest 10-year mean.
@@ -119,10 +121,10 @@ timestamps in the parquet. Reruns are idempotent and read the day cache. A
 
 ## Risks
 
-- **GSMaP volume:** Jun-Dec for 10 years is about 2,100 daily global files
-  (about 35 GB over FTP, several hours). Jan-Dec adds about 40% more. The
-  existing `rainfall_app` cache holds only Sep-Dec 2021-2025, so only part of
-  it is reusable.
+- **GSMaP volume:** the full year for 10 years is about 3,650 daily global
+  files (about 62 GB over FTP, likely 6+ hours). The existing `rainfall_app`
+  cache holds only Sep-Dec 2021-2025 (about 600 days), so only a small part is
+  reusable.
 - **Grid mismatch:** IMD at 0.25 deg is coarse for small districts; the
   `n_cells` flag makes this visible.
 - **Source disagreement:** GSMaP and IMD will differ for some districts, which
