@@ -1,0 +1,28 @@
+{
+  "input_shp_sha256": "c14549d96a379132382dd0a8bf74d96a5ca82bb53af3f47f0a5e5f66c01c714c",
+  "n_districts": 156,
+  "sources": {
+    "gsmap": {
+      "res_deg": 0.1,
+      "rows": 312,
+      "sha256": "d172d144f7f59419c10cf0d06df9c0b51dca9e01deaacc79fbfb6fe00c542c55"
+    },
+    "imd": {
+      "res_deg": 0.25,
+      "rows": 312,
+      "sha256": "9fa448b7556efaf01c44e0629c677bd074f7b8c1b86f634e339f909e108c59f1"
+    }
+  },
+  "years": [
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ]
+}
