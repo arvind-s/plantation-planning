@@ -36,8 +36,15 @@ def app(tmp_path, monkeypatch):
 
 def test_title_and_subtitle(app):
     assert not app.exception
-    assert app.title[0].value == "plantation_planning"
+    assert "Where to Plant Next" in app.title[0].value
     assert "Decadal precip assessment" in app.caption[0].value
+
+
+def test_intro_and_about_section_render(app):
+    assert not app.exception
+    assert any("Jun" in m.value and "ten years" in m.value for m in app.markdown)
+    assert app.expander[0].label == "About this assessment"
+    assert any("What it measures" in m.value for m in app.expander[0].markdown)
 
 
 def test_default_threshold_800_counts_one_shortlisted(app):

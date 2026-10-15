@@ -5,15 +5,19 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from plantation import figures, metrics
+from plantation import figures, intro, metrics
 
 DATA = Path(os.environ.get("PLANTATION_DATA_DIR", Path(__file__).parent / "data" / "out"))
 PERIOD_KEYS = {"Jun-Dec": "JJASOND", "Jan-Dec": "JANDEC"}
 SOURCES = {"GSMaP (JAXA, 0.1°)": "gsmap", "IMD (gauge, 0.25°)": "imd"}
 
 st.set_page_config(page_title="plantation_planning", layout="wide")
-st.title("plantation_planning")
-st.caption("Decadal precip assessment (JJASOND)")
+st.image(intro.banner_svg(), width="stretch")
+st.title(intro.TITLE)
+st.caption(intro.SUBTITLE)
+st.markdown(intro.INTRO)
+with st.expander("About this assessment"):
+    st.markdown(intro.ABOUT_MD)
 
 
 @st.cache_data
