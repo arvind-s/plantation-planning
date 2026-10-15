@@ -43,7 +43,8 @@ plantation_planning/
   app.py                    Streamlit app (reads data/out only, no downloads)
   build_dataset.py          CLI: builds data/out parquet + geojson
   plantation/
-    districts.py            load, repair, reproject, simplify; cell weights
+    districts.py            load, repair, reproject, simplify
+    weights.py              area-overlap cell weights per source grid
     gsmap.py                JAXA FTP reader (copied from rainfall_app)
     imd.py                  imdlib loader (copied from rainfall_app)
     metrics.py              period windowing, annual totals, 10-yr mean
