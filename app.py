@@ -17,14 +17,14 @@ st.caption("Decadal precip assessment (JJASOND)")
 
 
 @st.cache_data
-def load(source: str) -> pd.DataFrame:
+def load(source: str, mtime: float) -> pd.DataFrame:
     df = pd.read_parquet(DATA / f"district_season_{source}.parquet")
     df["key"] = df["state"] + "|" + df["district"]
     return df
 
 
 @st.cache_data
-def load_geojson() -> dict:
+def load_geojson(mtime: float) -> dict:
     return json.loads((DATA / "districts.geojson").read_text())
 
 
@@ -34,7 +34,8 @@ with st.sidebar:
     threshold = st.number_input("Threshold (mm)", min_value=0, max_value=6000,
                                 value=800, step=50, key="threshold",
                                 help="Districts with a 10-year mean at or above this are shortlisted.")
-    df = load(SOURCES[src_label])
+    src = SOURCES[src_label]
+    df = load(src, (DATA / f"district_season_{src}.parquet").stat().st_mtime)
     states = st.multiselect("State", sorted(df["state"].unique()), key="states")
     query = st.text_input("Search district", key="query")
 
@@ -52,7 +53,7 @@ c3.metric("Lowest 10-yr mean", f"{low['mean_mm']:.0f} mm", low["district"], delt
 
 tab_map, tab_table = st.tabs(["Map", "Ranked table"])
 with tab_map:
-    st.plotly_chart(figures.choropleth(load_geojson(), view, float(threshold)), width="stretch")
+    st.plotly_chart(figures.choropleth(load_geojson((DATA / "districts.geojson").stat().st_mtime), view, float(threshold)), width="stretch")
 with tab_table:
     table = figures.display_table(view)
     st.dataframe(table, width="stretch", hide_index=True)

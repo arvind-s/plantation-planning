@@ -19,9 +19,10 @@ def choropleth(geojson: dict, view: pd.DataFrame, threshold: float) -> go.Figure
         cd = pd.DataFrame({"d": part["district"], "s": part["state"],
                            "m": part["mean_mm"], "l": label}).values
         if flag:
+            zmax = max(float(part["mean_mm"].max()), threshold + 1)
             fig.add_trace(go.Choroplethmap(
                 locations=part["key"], z=part["mean_mm"], colorscale="Blues",
-                zmin=threshold, zmax=max(float(part["mean_mm"].max()), threshold + 1),
+                zmin=threshold - (zmax - threshold), zmax=zmax,
                 colorbar=dict(title="10-yr mean (mm)"), customdata=cd,
                 hovertemplate=hover, **common))
         else:

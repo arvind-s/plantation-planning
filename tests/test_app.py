@@ -80,3 +80,16 @@ def test_choropleth_has_two_traces():
     t = figures.display_table(view)
     assert list(t["Shortlisted"]) == ["Yes", "No"]
     assert "few grid cells" in t.loc[1, "Notes"] and "data gaps" in t.loc[1, "Notes"]
+
+
+def test_shortlisted_color_range_brackets_threshold():
+    geo = {"type": "FeatureCollection", "features": []}
+    for means in ([900.0, 1200.0], [800.0], [900.0, 900.0]):
+        df = pd.DataFrame({"state": "KA", "district": [f"D{i}" for i in range(len(means))],
+                           "mean_mm": means, "n_cells": 3, "low_cells": False, "missing_days": 0})
+        df["key"] = df["state"] + "|" + df["district"]
+        view = metrics.shortlist(df.assign(period="JJASOND"), "JJASOND", 800)
+        fig = figures.choropleth(geo, view, 800)
+        tr = [t for t in fig.data if t.showscale is not False][0]
+        assert tr.zmin < 800 < tr.zmax
+        assert tr.zmin != tr.zmax
